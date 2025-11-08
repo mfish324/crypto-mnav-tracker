@@ -5,11 +5,18 @@ Displays market cap to crypto holdings ratio for public companies holding Bitcoi
 
 from flask import Flask, render_template, jsonify
 import requests
-from datetime import datetime
+from datetime import datetime, timedelta
 import time
 import yfinance as yf
 
 app = Flask(__name__)
+
+# Cache for crypto prices to avoid rate limiting
+crypto_price_cache = {
+    'prices': None,
+    'timestamp': None,
+    'cache_duration': 60  # Cache for 60 seconds
+}
 
 # Crypto treasury companies data
 # Format: {"name": str, "ticker": str, "crypto": str, "holdings": float, "website": str}
@@ -49,19 +56,50 @@ TREASURY_COMPANIES = [
 
 
 def get_crypto_prices():
-    """Fetch current prices for Bitcoin, Ethereum, and Solana from CoinGecko API"""
+    """Fetch current prices for Bitcoin, Ethereum, and Solana from CoinGecko API with caching"""
+    global crypto_price_cache
+
+    # Check if cache is valid
+    now = datetime.now()
+    if (crypto_price_cache['prices'] is not None and
+        crypto_price_cache['timestamp'] is not None):
+        time_diff = (now - crypto_price_cache['timestamp']).total_seconds()
+        if time_diff < crypto_price_cache['cache_duration']:
+            print(f"Using cached prices (age: {time_diff:.1f}s)")
+            return crypto_price_cache['prices']
+
+    # Cache is invalid or empty, fetch new prices
     try:
         url = "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,solana&vs_currencies=usd"
         response = requests.get(url, timeout=10)
         response.raise_for_status()
         data = response.json()
-        return {
+
+        prices = {
             'BTC': data.get('bitcoin', {}).get('usd'),
             'ETH': data.get('ethereum', {}).get('usd'),
             'SOL': data.get('solana', {}).get('usd')
         }
+
+        # Update cache
+        crypto_price_cache['prices'] = prices
+        crypto_price_cache['timestamp'] = now
+        print(f"Fetched fresh prices from CoinGecko")
+
+        return prices
+    except requests.exceptions.HTTPError as e:
+        if e.response.status_code == 429:
+            print(f"Rate limited by CoinGecko. Using cached data if available.")
+            # Return cached data even if old, or default values
+            if crypto_price_cache['prices']:
+                return crypto_price_cache['prices']
+        print(f"Error fetching crypto prices: {e}")
+        return {'BTC': None, 'ETH': None, 'SOL': None}
     except Exception as e:
         print(f"Error fetching crypto prices: {e}")
+        # Try to use cached data if available
+        if crypto_price_cache['prices']:
+            return crypto_price_cache['prices']
         return {'BTC': None, 'ETH': None, 'SOL': None}
 
 
@@ -109,8 +147,8 @@ def get_mnav_data():
     results = []
 
     for company in TREASURY_COMPANIES:
-        # Add a small delay to avoid rate limiting
-        time.sleep(0.1)
+        # Small delay to avoid overwhelming Yahoo Finance API
+        time.sleep(0.05)
 
         crypto_type = company['crypto']
         crypto_price = crypto_prices.get(crypto_type)
