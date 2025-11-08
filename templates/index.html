@@ -4,6 +4,22 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Crypto Treasury mNAV Tracker</title>
+
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/static/manifest.json">
+
+    <!-- Theme colors -->
+    <meta name="theme-color" content="#00ffff">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+    <!-- iOS PWA Support -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="mNAV Tracker">
+    <link rel="apple-touch-icon" href="/static/icon-192.png">
+
+    <!-- Description -->
+    <meta name="description" content="Real-time mNAV tracker for crypto treasury companies (BTC, ETH, SOL)">
+
     <style>
         * {
             margin: 0;
@@ -372,6 +388,19 @@
 
         // Auto-refresh every 60 seconds
         setInterval(fetchData, 60000);
+
+        // Register Service Worker for PWA
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/static/service-worker.js')
+                    .then(registration => {
+                        console.log('Service Worker registered:', registration);
+                    })
+                    .catch(error => {
+                        console.log('Service Worker registration failed:', error);
+                    });
+            });
+        }
     </script>
 </body>
 </html>
