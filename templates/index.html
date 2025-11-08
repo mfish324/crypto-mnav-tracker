@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crypto Treasury mNAV Tracker</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #0a0a0a;
+            font-family: 'Courier New', monospace;
+            color: #fff;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            font-size: 2.5em;
+            color: #00ffff;
+            text-shadow: 0 0 10px #00ffff, 0 0 20px #00ffff, 0 0 30px #00ffff;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #ff00ff;
+            font-size: 1.1em;
+            text-shadow: 0 0 5px #ff00ff;
+        }
+
+        .crypto-prices {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .price-item {
+            font-size: 1.2em;
+            padding: 10px 20px;
+            border-radius: 10px;
+            text-shadow: 0 0 10px currentColor;
+            font-weight: bold;
+        }
+
+        #btcPrice {
+            color: #ff9500;
+            border: 2px solid #ff9500;
+        }
+
+        #ethPrice {
+            color: #627eea;
+            border: 2px solid #627eea;
+        }
+
+        #solPrice {
+            color: #14f195;
+            border: 2px solid #14f195;
+        }
+
+        .last-updated {
+            text-align: center;
+            color: #888;
+            font-size: 0.9em;
+            margin-bottom: 20px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        .tile {
+            background: #1a1a1a;
+            border: 2px solid #00ffff;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.3);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .tile::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(0, 255, 255, 0.1), transparent);
+            transform: rotate(45deg);
+            animation: shine 3s infinite;
+        }
+
+        @keyframes shine {
+            0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+            100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+        }
+
+        .tile:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 0 30px rgba(0, 255, 255, 0.5);
+            border-color: #ff00ff;
+        }
+
+        .company-name {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #fff;
+            margin-bottom: 5px;
+            text-shadow: 0 0 5px #fff;
+        }
+
+        .ticker {
+            font-size: 1em;
+            color: #00ff00;
+            margin-bottom: 5px;
+            text-shadow: 0 0 5px #00ff00;
+        }
+
+        .crypto-badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 5px;
+            font-size: 0.85em;
+            font-weight: bold;
+            margin-bottom: 15px;
+            text-shadow: 0 0 5px currentColor;
+        }
+
+        .crypto-btc {
+            color: #ff9500;
+            border: 1px solid #ff9500;
+        }
+
+        .crypto-eth {
+            color: #627eea;
+            border: 1px solid #627eea;
+        }
+
+        .crypto-sol {
+            color: #14f195;
+            border: 1px solid #14f195;
+        }
+
+        .mnav-container {
+            position: relative;
+            z-index: 1;
+        }
+
+        .mnav-label {
+            font-size: 0.9em;
+            color: #aaa;
+            margin-bottom: 5px;
+        }
+
+        .mnav-value {
+            font-size: 2.5em;
+            font-weight: bold;
+            text-shadow: 0 0 10px currentColor, 0 0 20px currentColor;
+            margin-bottom: 10px;
+        }
+
+        .mnav-low { color: #ff0000; }
+        .mnav-medium { color: #ffff00; }
+        .mnav-high { color: #00ff00; }
+        .mnav-very-high { color: #00ffff; }
+
+        .holdings-info {
+            font-size: 0.85em;
+            color: #888;
+            margin-top: 10px;
+            border-top: 1px solid #333;
+            padding-top: 10px;
+        }
+
+        .holdings-info div {
+            margin: 3px 0;
+        }
+
+        .tile-links {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 12px;
+            padding-top: 10px;
+            border-top: 1px solid #333;
+        }
+
+        .tile-link {
+            font-size: 0.9em;
+            color: #00ffff;
+            text-decoration: none;
+            text-transform: lowercase;
+            padding: 5px 10px;
+            border: 1px solid #00ffff;
+            border-radius: 5px;
+            transition: all 0.3s ease;
+            text-shadow: 0 0 5px #00ffff;
+        }
+
+        .tile-link:hover {
+            background: #00ffff;
+            color: #0a0a0a;
+            text-shadow: none;
+            box-shadow: 0 0 10px #00ffff;
+        }
+
+        .loading {
+            text-align: center;
+            font-size: 1.5em;
+            color: #00ffff;
+            text-shadow: 0 0 10px #00ffff;
+            margin: 50px 0;
+        }
+
+        .error {
+            text-align: center;
+            color: #ff0000;
+            font-size: 1.2em;
+            margin: 50px 0;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .loading {
+            animation: pulse 2s infinite;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>CRYPTO TREASURY mNAV TRACKER</h1>
+        <div class="subtitle">Market Cap to Net Asset Value Ratio</div>
+    </div>
+
+    <div class="crypto-prices">
+        <div class="price-item" id="btcPrice">BTC: $--,---</div>
+        <div class="price-item" id="ethPrice">ETH: $--,---</div>
+        <div class="price-item" id="solPrice">SOL: $--,---</div>
+    </div>
+    <div class="last-updated" id="lastUpdated">Last updated: --</div>
+
+    <div id="content">
+        <div class="loading">Loading data...</div>
+    </div>
+
+    <script>
+        function formatNumber(num) {
+            if (num === null || num === undefined) return 'N/A';
+            return num.toLocaleString('en-US', { maximumFractionDigits: 2 });
+        }
+
+        function formatCurrency(num) {
+            if (num === null || num === undefined) return 'N/A';
+            if (num >= 1e9) {
+                return '$' + (num / 1e9).toFixed(2) + 'B';
+            } else if (num >= 1e6) {
+                return '$' + (num / 1e6).toFixed(2) + 'M';
+            }
+            return '$' + num.toLocaleString('en-US', { maximumFractionDigits: 0 });
+        }
+
+        function getMnavClass(mnav) {
+            if (mnav === null || mnav === undefined) return '';
+            if (mnav < 0.5) return 'mnav-low';
+            if (mnav < 1.0) return 'mnav-medium';
+            if (mnav < 2.0) return 'mnav-high';
+            return 'mnav-very-high';
+        }
+
+        function formatMnav(mnav) {
+            if (mnav === null || mnav === undefined) return 'N/A';
+            return mnav.toFixed(2) + 'x';
+        }
+
+        function formatPercentage(pct) {
+            if (pct === null || pct === undefined) return 'N/A';
+            return pct.toFixed(1) + '%';
+        }
+
+        async function fetchData() {
+            try {
+                const response = await fetch('/api/mnav-data');
+                if (!response.ok) throw new Error('Failed to fetch data');
+
+                const data = await response.json();
+
+                // Update crypto prices
+                const prices = data.crypto_prices;
+                document.getElementById('btcPrice').textContent =
+                    `BTC: $${formatNumber(prices.BTC)}`;
+                document.getElementById('ethPrice').textContent =
+                    `ETH: $${formatNumber(prices.ETH)}`;
+                document.getElementById('solPrice').textContent =
+                    `SOL: $${formatNumber(prices.SOL)}`;
+
+                // Update last updated time
+                const timestamp = new Date(data.timestamp);
+                document.getElementById('lastUpdated').textContent =
+                    `Last updated: ${timestamp.toLocaleTimeString()}`;
+
+                // Sort companies by mNAV (descending)
+                const sortedCompanies = data.companies
+                    .filter(c => c.mnav !== null)
+                    .sort((a, b) => (b.mnav || 0) - (a.mnav || 0));
+
+                // Render tiles
+                const grid = document.createElement('div');
+                grid.className = 'grid';
+
+                sortedCompanies.forEach(company => {
+                    const tile = document.createElement('div');
+                    tile.className = 'tile';
+
+                    const cryptoClass = `crypto-${company.crypto.toLowerCase()}`;
+                    const newsUrl = `https://news.google.com/search?q=${encodeURIComponent(company.name + ' ' + company.ticker)}`;
+
+                    tile.innerHTML = `
+                        <div class="company-name">${company.name}</div>
+                        <div class="ticker">$${company.ticker}</div>
+                        <div class="crypto-badge ${cryptoClass}">${company.crypto}</div>
+                        <div class="mnav-container">
+                            <div class="mnav-label">mNAV Ratio</div>
+                            <div class="mnav-value ${getMnavClass(company.mnav)}">
+                                ${formatMnav(company.mnav)}
+                            </div>
+                            <div class="mnav-label">${formatPercentage(company.mnav_percentage)}</div>
+                        </div>
+                        <div class="holdings-info">
+                            <div>${company.crypto} Holdings: ${formatNumber(company.holdings)}</div>
+                            <div>${company.crypto} Value: ${formatCurrency(company.crypto_value)}</div>
+                            <div>Market Cap: ${formatCurrency(company.market_cap)}</div>
+                        </div>
+                        <div class="tile-links">
+                            <a href="${company.website}" target="_blank" rel="noopener noreferrer" class="tile-link">website</a>
+                            <a href="${newsUrl}" target="_blank" rel="noopener noreferrer" class="tile-link">news</a>
+                        </div>
+                    `;
+
+                    grid.appendChild(tile);
+                });
+
+                document.getElementById('content').innerHTML = '';
+                document.getElementById('content').appendChild(grid);
+
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('content').innerHTML =
+                    `<div class="error">Error loading data: ${error.message}</div>`;
+            }
+        }
+
+        // Initial load
+        fetchData();
+
+        // Auto-refresh every 60 seconds
+        setInterval(fetchData, 60000);
+    </script>
+</body>
+</html>
