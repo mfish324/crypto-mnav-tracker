@@ -136,3 +136,6 @@ Thumbs.db
 # Local development
 *.db
 *.sqlite
+
+# Holdings update log (local only)
+holdings_update_log.json

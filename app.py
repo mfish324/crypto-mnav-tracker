@@ -20,6 +20,8 @@ crypto_price_cache = {
 
 # Crypto treasury companies data
 # Format: {"name": str, "ticker": str, "crypto": str, "holdings": float, "website": str}
+# Last verified: 2025-11-08
+# NOTE: Update holdings regularly using update_holdings.py script
 TREASURY_COMPANIES = [
     # Bitcoin Holdings
     {"name": "Strategy", "ticker": "MSTR", "crypto": "BTC", "holdings": 641205, "website": "https://www.microstrategy.com"},
@@ -32,7 +34,6 @@ TREASURY_COMPANIES = [
     {"name": "Trump Media & Tech", "ticker": "DJT", "crypto": "BTC", "holdings": 15000, "website": "https://www.tmtgcorp.com"},
     {"name": "Hut 8 Mining", "ticker": "HUT", "crypto": "BTC", "holdings": 13696, "website": "https://hut8.com"},
     {"name": "CleanSpark", "ticker": "CLSK", "crypto": "BTC", "holdings": 13011, "website": "https://www.cleanspark.com"},
-    {"name": "Tesla", "ticker": "TSLA", "crypto": "BTC", "holdings": 11509, "website": "https://www.tesla.com"},
     {"name": "Block", "ticker": "SQ", "crypto": "BTC", "holdings": 8780, "website": "https://www.block.xyz"},
     {"name": "GD Culture Group", "ticker": "GDC", "crypto": "BTC", "holdings": 7500, "website": "https://www.gdculturegroup.com"},
 
