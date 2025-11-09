@@ -5,7 +5,7 @@ Displays market cap to crypto holdings ratio for public companies holding Bitcoi
 
 from flask import Flask, render_template, jsonify
 import requests
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import time
 import yfinance as yf
 
@@ -61,7 +61,7 @@ def get_crypto_prices():
     global crypto_price_cache
 
     # Check if cache is valid
-    now = datetime.now()
+    now = datetime.now(timezone.utc)
     if (crypto_price_cache['prices'] is not None and
         crypto_price_cache['timestamp'] is not None):
         time_diff = (now - crypto_price_cache['timestamp']).total_seconds()
@@ -184,7 +184,7 @@ def get_mnav_data():
         })
 
     return jsonify({
-        'timestamp': datetime.now().isoformat(),
+        'timestamp': datetime.now(timezone.utc).isoformat(),
         'crypto_prices': crypto_prices,
         'companies': results
     })
