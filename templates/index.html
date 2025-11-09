@@ -293,6 +293,11 @@
             return '$' + num.toLocaleString('en-US', { maximumFractionDigits: 0 });
         }
 
+        function formatStockPrice(num) {
+            if (num === null || num === undefined) return 'N/A';
+            return '$' + num.toFixed(2);
+        }
+
         function getMnavClass(mnav) {
             if (mnav === null || mnav === undefined) return '';
             if (mnav < 0.5) return 'mnav-low';
@@ -373,9 +378,10 @@
                             <div class="mnav-label">${formatPercentage(company.mnav_percentage)}</div>
                         </div>
                         <div class="holdings-info">
+                            <div>Stock Price: ${formatStockPrice(company.stock_price)}</div>
+                            <div>Market Cap: ${formatCurrency(company.market_cap)}</div>
                             <div>${company.crypto} Holdings: ${formatNumber(company.holdings)}</div>
                             <div>${company.crypto} Value: ${formatCurrency(company.crypto_value)}</div>
-                            <div>Market Cap: ${formatCurrency(company.market_cap)}</div>
                         </div>
                         <div class="tile-links">
                             <a href="${company.website}" target="_blank" rel="noopener noreferrer" class="tile-link">website</a>

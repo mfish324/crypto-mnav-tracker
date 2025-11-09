@@ -104,22 +104,30 @@ def get_crypto_prices():
         return {'BTC': None, 'ETH': None, 'SOL': None}
 
 
-def get_market_cap(ticker):
-    """Fetch market cap for a given ticker using yfinance library"""
+def get_stock_data(ticker):
+    """Fetch stock data (market cap and current price) using yfinance library"""
     try:
         stock = yf.Ticker(ticker)
         info = stock.info
 
-        # Try to get market cap from info
+        # Get market cap
         market_cap = info.get('marketCap', None)
 
-        if market_cap and market_cap > 0:
-            return market_cap
+        # Get current price (try multiple fields as different stocks use different keys)
+        current_price = (
+            info.get('currentPrice') or
+            info.get('regularMarketPrice') or
+            info.get('previousClose') or
+            None
+        )
 
-        return None
+        return {
+            'market_cap': market_cap if market_cap and market_cap > 0 else None,
+            'stock_price': current_price
+        }
     except Exception as e:
-        print(f"Error fetching market cap for {ticker}: {e}")
-        return None
+        print(f"Error fetching stock data for {ticker}: {e}")
+        return {'market_cap': None, 'stock_price': None}
 
 
 def calculate_mnav(holdings, crypto_price, market_cap):
@@ -155,7 +163,11 @@ def get_mnav_data():
         crypto_price = crypto_prices.get(crypto_type)
         holdings = company['holdings']
 
-        market_cap = get_market_cap(company['ticker'])
+        # Get stock data (market cap and current price)
+        stock_data = get_stock_data(company['ticker'])
+        market_cap = stock_data['market_cap']
+        stock_price = stock_data['stock_price']
+
         mnav = calculate_mnav(holdings, crypto_price, market_cap)
 
         results.append({
@@ -165,6 +177,7 @@ def get_mnav_data():
             'holdings': holdings,
             'crypto_value': holdings * crypto_price if crypto_price else None,
             'market_cap': market_cap,
+            'stock_price': stock_price,
             'mnav': mnav,
             'mnav_percentage': mnav * 100 if mnav else None,
             'website': company.get('website', '')
