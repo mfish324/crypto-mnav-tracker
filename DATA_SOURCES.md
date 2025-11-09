@@ -190,7 +190,7 @@ Data sourced from CoinGecko Solana Treasuries and recent company announcements:
 
 **Formula:**
 ```
-mNAV = (Crypto Holdings × Crypto Price) / Market Capitalization
+mNAV = Market Capitalization / (Crypto Holdings × Crypto Price)
 ```
 
 **Calculation Function:** `calculate_mnav()` in `app.py`
@@ -199,14 +199,15 @@ mNAV = (Crypto Holdings × Crypto Price) / Market Capitalization
 - Company: Strategy (MSTR)
 - BTC Holdings: 641,205 BTC
 - BTC Price: $102,086
-- Market Cap: $65,458,053,630
-- mNAV = (641,205 × $102,086) / $65,458,053,630 = 0.94x or 94%
+- Crypto Value: 641,205 × $102,086 = $65,458,053,630
+- Market Cap: $69,519,482,880
+- mNAV = $69,519,482,880 / $65,458,053,630 = 1.06x or 106%
 
 **Interpretation:**
-- **< 0.5x (50%)**: Crypto holdings represent less than half of market cap (Red)
-- **0.5x - 1.0x (50-100%)**: Significant crypto backing (Yellow)
-- **1.0x - 2.0x (100-200%)**: Crypto worth more than market cap (Green)
-- **> 2.0x (200%+)**: Very high crypto backing (Cyan/Turquoise)
+- **> 2.0x**: Trading at high premium - market cap more than 2x crypto value (Cyan)
+- **1.0x - 2.0x**: Trading at premium - market cap exceeds crypto value (Green)
+- **0.5x - 1.0x**: Trading at discount - market cap is 50-100% of crypto value (Yellow)
+- **< 0.5x**: Trading at deep discount - market cap less than 50% of crypto value (Red)
 
 ---
 

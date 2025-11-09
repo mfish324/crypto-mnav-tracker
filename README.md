@@ -4,13 +4,13 @@ A real-time web dashboard displaying the mNAV (Market cap to Net Asset Value) ra
 
 ## What is mNAV?
 
-mNAV = (Crypto Holdings Value) / (Market Cap)
+mNAV = (Market Cap) / (Crypto Holdings Value)
 
-This ratio shows how much of a company's market capitalization is backed by their crypto holdings:
-- **< 0.5x**: Low crypto backing (red)
-- **0.5x - 1.0x**: Medium crypto backing (yellow)
-- **1.0x - 2.0x**: High crypto backing (green)
-- **> 2.0x**: Very high crypto backing (cyan)
+This ratio shows how the market values the company relative to its crypto holdings:
+- **> 2.0x**: Trading at high premium - market cap more than 2x crypto value (cyan)
+- **1.0x - 2.0x**: Trading at premium - market cap exceeds crypto value (green)
+- **0.5x - 1.0x**: Trading at discount - market cap is 50-100% of crypto value (yellow)
+- **< 0.5x**: Trading at deep discount - market cap less than 50% of crypto value (red)
 
 ## Features
 

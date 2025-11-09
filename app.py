@@ -122,10 +122,10 @@ def get_market_cap(ticker):
 
 
 def calculate_mnav(holdings, crypto_price, market_cap):
-    """Calculate mNAV: (Crypto Holdings Value) / (Market Cap)"""
+    """Calculate mNAV: (Market Cap) / (Crypto Holdings Value)"""
     if market_cap and market_cap > 0 and crypto_price:
         crypto_value = holdings * crypto_price
-        mnav = crypto_value / market_cap
+        mnav = market_cap / crypto_value
         return mnav
     return None
 
