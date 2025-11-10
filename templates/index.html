@@ -67,6 +67,23 @@
             border-radius: 10px;
             text-shadow: 0 0 10px currentColor;
             font-weight: bold;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .price-change {
+            font-size: 0.8em;
+            font-weight: normal;
+        }
+
+        .price-change.positive {
+            color: #00ff00;
+        }
+
+        .price-change.negative {
+            color: #ff0000;
         }
 
         #btcPrice {
@@ -316,6 +333,24 @@
             return pct.toFixed(1) + '%';
         }
 
+        function formatPriceChange(changePercent) {
+            if (changePercent === null || changePercent === undefined) return '';
+            const sign = changePercent >= 0 ? '+' : '';
+            const className = changePercent >= 0 ? 'positive' : 'negative';
+            return `<span class="price-change ${className}">${sign}${changePercent.toFixed(2)}%</span>`;
+        }
+
+        function updateCryptoPrice(elementId, symbol, priceData) {
+            const element = document.getElementById(elementId);
+            const price = priceData.price || priceData; // Support both new and old format
+            const change = priceData.change_24h;
+
+            element.innerHTML = `
+                <div>${symbol}: $${formatNumber(price)}</div>
+                ${change !== null && change !== undefined ? formatPriceChange(change) : ''}
+            `;
+        }
+
         async function fetchData() {
             try {
                 const response = await fetch('/api/mnav-data');
@@ -325,12 +360,9 @@
 
                 // Update crypto prices
                 const prices = data.crypto_prices;
-                document.getElementById('btcPrice').textContent =
-                    `BTC: $${formatNumber(prices.BTC)}`;
-                document.getElementById('ethPrice').textContent =
-                    `ETH: $${formatNumber(prices.ETH)}`;
-                document.getElementById('solPrice').textContent =
-                    `SOL: $${formatNumber(prices.SOL)}`;
+                updateCryptoPrice('btcPrice', 'BTC', prices.BTC);
+                updateCryptoPrice('ethPrice', 'ETH', prices.ETH);
+                updateCryptoPrice('solPrice', 'SOL', prices.SOL);
 
                 // Update last updated time (local time with timezone)
                 const timestamp = new Date(data.timestamp);

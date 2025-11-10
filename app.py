@@ -71,15 +71,24 @@ def get_crypto_prices():
 
     # Cache is invalid or empty, fetch new prices
     try:
-        url = "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,solana&vs_currencies=usd"
+        url = "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,solana&vs_currencies=usd&include_24hr_change=true"
         response = requests.get(url, timeout=10)
         response.raise_for_status()
         data = response.json()
 
         prices = {
-            'BTC': data.get('bitcoin', {}).get('usd'),
-            'ETH': data.get('ethereum', {}).get('usd'),
-            'SOL': data.get('solana', {}).get('usd')
+            'BTC': {
+                'price': data.get('bitcoin', {}).get('usd'),
+                'change_24h': data.get('bitcoin', {}).get('usd_24h_change')
+            },
+            'ETH': {
+                'price': data.get('ethereum', {}).get('usd'),
+                'change_24h': data.get('ethereum', {}).get('usd_24h_change')
+            },
+            'SOL': {
+                'price': data.get('solana', {}).get('usd'),
+                'change_24h': data.get('solana', {}).get('usd_24h_change')
+            }
         }
 
         # Update cache
@@ -95,13 +104,21 @@ def get_crypto_prices():
             if crypto_price_cache['prices']:
                 return crypto_price_cache['prices']
         print(f"Error fetching crypto prices: {e}")
-        return {'BTC': None, 'ETH': None, 'SOL': None}
+        return {
+            'BTC': {'price': None, 'change_24h': None},
+            'ETH': {'price': None, 'change_24h': None},
+            'SOL': {'price': None, 'change_24h': None}
+        }
     except Exception as e:
         print(f"Error fetching crypto prices: {e}")
         # Try to use cached data if available
         if crypto_price_cache['prices']:
             return crypto_price_cache['prices']
-        return {'BTC': None, 'ETH': None, 'SOL': None}
+        return {
+            'BTC': {'price': None, 'change_24h': None},
+            'ETH': {'price': None, 'change_24h': None},
+            'SOL': {'price': None, 'change_24h': None}
+        }
 
 
 def get_stock_data(ticker):
@@ -150,7 +167,8 @@ def get_mnav_data():
     """API endpoint to get mNAV data for all companies"""
     crypto_prices = get_crypto_prices()
 
-    if not any(crypto_prices.values()):
+    # Check if we have valid price data
+    if not any(v.get('price') if isinstance(v, dict) else v for v in crypto_prices.values()):
         return jsonify({"error": "Unable to fetch crypto prices"}), 500
 
     results = []
@@ -160,7 +178,8 @@ def get_mnav_data():
         time.sleep(0.05)
 
         crypto_type = company['crypto']
-        crypto_price = crypto_prices.get(crypto_type)
+        crypto_data = crypto_prices.get(crypto_type, {})
+        crypto_price = crypto_data.get('price') if isinstance(crypto_data, dict) else crypto_data
         holdings = company['holdings']
 
         # Get stock data (market cap and current price)
